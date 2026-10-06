@@ -60,3 +60,35 @@ jobs:
             cd /home/${{ secrets.NFS_USERNAME }}/app/
             pkill -f 'java -jar' || true
             nohup java -jar *.jar > app.log 2>&1 &
+
+  deploy-server2:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: target/
+
+      - name: Copiar archivo .jar a Server 2 vía SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER2_HOST }}
+          username: ${{ secrets.NFS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "target/*.jar"
+          target: "/home/${{ secrets.NFS_USERNAME }}/app/"
+          strip_components: 1
+
+      - name: Ejecutar la aplicación en Server 2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER2_HOST }}
+          username: ${{ secrets.NFS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/${{ secrets.NFS_USERNAME }}/app/
+            pkill -f 'java -jar' || true
+            nohup java -jar *.jar > app.log 2>&1 &
