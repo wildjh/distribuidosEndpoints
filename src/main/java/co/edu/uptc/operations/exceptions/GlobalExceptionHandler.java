@@ -1,5 +1,6 @@
 package co.edu.uptc.operations.exceptions;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -90,5 +91,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ByZeroException.class)
     public ResponseEntity<String> byZero(ByZeroException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<String> handleDataAccess(DataAccessException ex) {
+        String message = "No se pudo consultar MySQL. Revisa DB_HOST/DB_USER/DB_PASSWORD y que el puerto 3306 sea alcanzable desde el contenedor. Detalle: "
+                + ex.getMostSpecificCause().getMessage();
+        errorLogService.logParameterError(
+                "database",
+                null,
+                message,
+                ex.getClass().getSimpleName());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(message);
     }
 }
