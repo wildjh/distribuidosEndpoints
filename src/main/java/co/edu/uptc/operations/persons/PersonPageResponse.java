@@ -4,6 +4,8 @@ import java.util.List;
 
 public class PersonPageResponse {
 
+    private final String mensaje;
+    private final String vm;
     private final String container;
     private final int page;
     private final int size;
@@ -12,18 +14,30 @@ public class PersonPageResponse {
     private final List<Person> content;
 
     public PersonPageResponse(
+            String mensaje,
+            String vm,
             String container,
             int page,
             int size,
             long totalElements,
             int totalPages,
             List<Person> content) {
+        this.mensaje = mensaje;
+        this.vm = vm;
         this.container = container;
         this.page = page;
         this.size = size;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
         this.content = content;
+    }
+
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public String getVm() {
+        return vm;
     }
 
     public String getContainer() {

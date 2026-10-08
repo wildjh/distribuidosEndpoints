@@ -21,13 +21,19 @@ public class PersonCsvService {
     private static final int MAX_PAGE_SIZE = 10_000;
 
     private final Path csvPath;
+    private final String mensaje;
+    private final String vm;
     private final String containerName;
     private long totalElements = -1;
 
     public PersonCsvService(
             @Value("${app.persons-csv.path:personas.csv}") String relativeCsvPath,
+            @Value("${mensaje:}") String mensaje,
+            @Value("${vm:local}") String vm,
             @Value("${app.container-name:local}") String containerName) {
         this.csvPath = resolveBesideJar(relativeCsvPath);
+        this.mensaje = mensaje;
+        this.vm = vm;
         this.containerName = containerName;
     }
 
@@ -56,7 +62,7 @@ public class PersonCsvService {
 
         int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
         if (page > totalPages && totalPages > 0) {
-            return new PersonPageResponse(containerName, page, size, totalElements, totalPages, List.of());
+            return pageResponse(page, size, totalElements, totalPages, List.of());
         }
 
         long skipRows = (long) (page - 1) * size;
@@ -65,12 +71,12 @@ public class PersonCsvService {
         try (BufferedReader reader = Files.newBufferedReader(csvPath, StandardCharsets.UTF_8)) {
             String header = reader.readLine();
             if (header == null) {
-                return new PersonPageResponse(containerName, page, size, 0, 0, List.of());
+                return pageResponse(page, size, 0, 0, List.of());
             }
 
             for (long i = 0; i < skipRows; i++) {
                 if (reader.readLine() == null) {
-                    return new PersonPageResponse(containerName, page, size, totalElements, totalPages, List.of());
+                    return pageResponse(page, size, totalElements, totalPages, List.of());
                 }
             }
 
@@ -84,7 +90,11 @@ public class PersonCsvService {
             throw new PersonsCsvReadException("Error leyendo el CSV: " + e.getMessage(), e);
         }
 
-        return new PersonPageResponse(containerName, page, size, totalElements, totalPages, content);
+        return pageResponse(page, size, totalElements, totalPages, content);
+    }
+
+    private PersonPageResponse pageResponse(int page, int size, long total, int totalPages, List<Person> content) {
+        return new PersonPageResponse(mensaje, vm, containerName, page, size, total, totalPages, content);
     }
 
     private void validate(int page, int size) {
