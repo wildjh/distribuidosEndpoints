@@ -19,7 +19,7 @@ public class PersonController {
     @GetMapping("/persons")
     public PersonPageResponse getPersons(
             @RequestParam("page") int page,
-            @RequestParam("size") int size),
+            @RequestParam("size") int size,
             @RequestParam("message") String name) {
         return personCsvService.findPage(page, size);
     }
